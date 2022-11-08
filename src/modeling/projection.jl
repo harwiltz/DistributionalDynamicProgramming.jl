@@ -32,5 +32,11 @@ function (Π::CramérProjection)(μ::CM) where CM <: FiniteReprMixture
     locs = vcat(support.(μ.components)...)
     weights = probs.(μ.components) .* μ.prior.p
     p = vcat(weights...)
-    Π(DiscreteNonParametric(locs, p))
+    θ = unique(locs)
+    pdict = Dict(t => 0.0 for t ∈ θ)
+    for (l, p′) in zip(locs, p)
+        pdict[l] += p′
+    end
+    ps = [pdict[t] for t in θ]
+    Π(DiscreteNonParametric(θ, ps))
 end
