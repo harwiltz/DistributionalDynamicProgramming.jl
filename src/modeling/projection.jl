@@ -28,7 +28,7 @@ function (Π::CramérProjection)(μ::DiscreteNonParametric)
     DiscreteNonParametric(target_locs, p̂)
 end
 
-function (Π::CramérProjection)(μ::CM) where CM <: FiniteReprMixture
+function (Π::DistributionProjection)(μ::CM) where CM <: FiniteReprMixture
     locs = vcat(support.(μ.components)...)
     weights = probs.(μ.components) .* μ.prior.p
     p = vcat(weights...)
@@ -39,4 +39,16 @@ function (Π::CramérProjection)(μ::CM) where CM <: FiniteReprMixture
     end
     ps = [pdict[t] for t in θ]
     Π(DiscreteNonParametric(θ, ps))
+end
+
+struct Wasserstein1Projection <: DistributionProjection
+    τ̂::AbstractArray{<: Real}
+end
+
+Wasserstein1Projection(sketch::QuantileSketch) = Wasserstein1Projection(sketch.τ̂)
+Wasserstein1Projection(n::Integer) = Wasserstein1Projection((collect(1:n) .- 0.5) ./ n)
+
+function (Π::Wasserstein1Projection)(μ::DiscreteNonParametric)
+    N = length(Π.τ̂)
+    DiscreteNonParametric(Statistics.quantile.(μ, Π.τ̂), ones(N) / N)
 end

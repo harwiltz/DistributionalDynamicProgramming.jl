@@ -8,7 +8,8 @@ export DistributionSketch,
     QuantileSketch,
     CategoricalImputation,
     QuantileImputation,
-    CramérProjection
+    CramérProjection,
+    Wasserstein1Projection
 
 include("sketch.jl")
 include("imputation.jl")
