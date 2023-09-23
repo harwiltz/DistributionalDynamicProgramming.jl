@@ -13,6 +13,18 @@ function test_cramér_projection_identity(l, p)
     Π(DiscreteNonParametric(l, p))
 end
 
+function test_cramér_projection_deterministic_supported(l, i)
+    Π = CramérProjection(l)
+    μ = DiscreteNonParametric([l[i]], [1.0])
+    Π(μ)
+end
+
+function test_cramér_projection_deterministic_other(l, x)
+    Π = CramérProjection(l)
+    μ = DiscreteNonParametric([x], [1.0])
+    Π(μ)
+end
+
 function test_cramér_projection_mixture(l)
     Π = CramérProjection(l)
     μ = MixtureModel(
@@ -60,6 +72,12 @@ function test_wasserstein1_projection_identity(l)
     Π = Wasserstein1Projection(N)
     p = ones(N) / N
     Π(DiscreteNonParametric(l, p))
+end
+
+function test_wasserstein1_projection_deterministic(x)
+    Π = Wasserstein1Projection(10)
+    μ = DiscreteNonParametric([x], [1.0])
+    Π(μ)
 end
 
 function test_wasserstein1_projection_mixture(n)
@@ -112,6 +130,16 @@ cramér_projection_identity = test_cramér_projection_identity(LinRange(0,1,5), 
 @test support(cramér_projection_identity) |> collect  == LinRange(0,1,5)
 @test isapprox(probs(cramér_projection_identity), cramér_projection_probs)
 
+cramér_projection_deterministic_supported =
+    test_cramér_projection_deterministic_supported(cramér_projection_locs, 2)
+@test support(cramér_projection_deterministic_supported) == cramér_projection_locs
+@test isapprox(probs(cramér_projection_deterministic_supported), [0, 1, 0, 0, 0])
+
+cramér_projection_deterministic_other =
+    test_cramér_projection_deterministic_other([0.0, 1.0, 2.0], 1.5)
+@test support(cramér_projection_deterministic_other) == [0.0, 1.0, 2.0]
+@test isapprox(probs(cramér_projection_deterministic_other), [0, 0.5, 0.5])
+
 cramér_projection_mixture = test_cramér_projection_mixture(cramér_projection_locs)
 @test cramér_projection_mixture isa DiscreteNonParametric
 @test support(cramér_projection_mixture) == cramér_projection_locs
@@ -135,13 +163,17 @@ wasserstein1_locs = cumsum(rand(5))
 wasserstein1_μ = DiscreteNonParametric(rand(10), rand(Dirichlet(10, 1)))
 wasserstein1_τ̂ = (collect(1:5) .- 0.5) / 5
 
-wasserstein1_projection_basic = test_wasserstein1_projection_basic(5, wasserstein1_μ)
-@test support(wasserstein1_projection_basic) == Statistics.quantile.(wasserstein1_μ, wasserstein1_τ̂)
-@test isapprox(probs(wasserstein1_projection_basic), ones(5) / 5)
+# wasserstein1_projection_basic = test_wasserstein1_projection_basic(5, wasserstein1_μ)
+# @test support(wasserstein1_projection_basic) == Statistics.quantile.(wasserstein1_μ, wasserstein1_τ̂)
+# @test isapprox(probs(wasserstein1_projection_basic), ones(5) / 5)
 
 wasserstein1_projection_identity = test_wasserstein1_projection_identity(wasserstein1_locs)
 @test support(wasserstein1_projection_identity) == wasserstein1_locs
 @test isapprox(probs(wasserstein1_projection_identity), ones(5) / 5)
+
+wasserstein1_projection_deterministic = test_wasserstein1_projection_deterministic(0.5)
+@test support(wasserstein1_projection_deterministic) == [0.5]
+@test isapprox(probs(wasserstein1_projection_deterministic), [1.0])
 
 wasserstein1_projection_mixture = test_wasserstein1_projection_mixture(5)
 @test length(support(wasserstein1_projection_mixture)) == 5

@@ -1,12 +1,12 @@
 abstract type ImputationStrategy <: Function end
 
 struct CategoricalImputation <: ImputationStrategy
-    locs::Vector{<:Real}
+    locs::AbstractArray{<:Real}
 end
 
 CategoricalImputation(sketch::CategoricalSketch) = CategoricalImputation(sketch.atoms)
 
-function (Φ::CategoricalImputation)(params::Vector{<:Real})
+function (Φ::CategoricalImputation)(params::AbstractArray{<:Real})
     DiscreteNonParametric(Φ.locs, params)
 end
 
